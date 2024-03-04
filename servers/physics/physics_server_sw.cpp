@@ -828,6 +828,19 @@ bool PhysicsServerSW::body_is_omitting_force_integration(RID p_body) const {
 	return body->get_omit_force_integration();
 };
 
+void PhysicsServerSW::body_set_omit_collisions_resolution(RID p_body, bool p_omit) {
+	BodySW *body = body_owner.get(p_body);
+	ERR_FAIL_COND(!body);
+
+	body->set_omit_collisions_resolution(p_omit);
+};
+
+bool PhysicsServerSW::body_is_omitting_collisions_resolution(RID p_body) const {
+	BodySW *body = body_owner.get(p_body);
+	ERR_FAIL_COND_V(!body, false);
+	return body->get_omit_collisions_resolution();
+};
+
 void PhysicsServerSW::body_set_max_contacts_reported(RID p_body, int p_contacts) {
 	BodySW *body = body_owner.get(p_body);
 	ERR_FAIL_COND(!body);
@@ -845,6 +858,13 @@ void PhysicsServerSW::body_set_force_integration_callback(RID p_body, Object *p_
 	ERR_FAIL_COND(!body);
 	body->set_force_integration_callback(p_receiver ? p_receiver->get_instance_id() : ObjectID(0), p_method, p_udata);
 }
+
+void PhysicsServerSW::body_set_collisions_resolution_callback(RID p_body, Object *p_receiver, const StringName &p_method, const Variant &p_udata) {
+	BodySW *body = body_owner.get(p_body);
+	ERR_FAIL_COND(!body);
+	body->set_collisions_resolution_callback(p_receiver ? p_receiver->get_instance_id() : ObjectID(0), p_method, p_udata);
+}
+
 
 void PhysicsServerSW::body_set_ray_pickable(RID p_body, bool p_enable) {
 	BodySW *body = body_owner.get(p_body);

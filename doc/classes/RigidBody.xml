@@ -155,6 +155,9 @@
 		<member name="custom_integrator" type="bool" setter="set_use_custom_integrator" getter="is_using_custom_integrator" default="false">
 			If [code]true[/code], internal force integration will be disabled (like gravity or air friction) for this body. Other than collision response, the body will only move as determined by the [method _integrate_forces] function, if defined.
 		</member>
+		<member name="custom_collisions_resolution" type="bool" setter="set_use_custom_collisions_resolution" getter="ist_using_custom_collisions_resolution" default="false">
+			If [code]true[/code], collision impule is disabled for this body.
+		</member>
 		<member name="friction" type="float" setter="set_friction" getter="get_friction">
 			The body's friction, from 0 (frictionless) to 1 (max friction).
 			Deprecated, use [member PhysicsMaterial.friction] instead via [member physics_material_override].

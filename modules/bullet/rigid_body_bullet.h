@@ -45,6 +45,27 @@ class AreaBullet;
 class SpaceBullet;
 class btRigidBody;
 class GodotMotionState;
+#include <iostream>
+
+
+class BulletPhysicsDirectCollisionsResolution : public PhysicsDirectCollisionsResolution {
+	GDCLASS(BulletPhysicsDirectCollisionsResolution, PhysicsDirectCollisionsResolution);
+
+public:
+	RigidBodyBullet *body = nullptr;
+	RigidBodyBullet *body2 = nullptr;
+	btSolverConstraint solverConstraint;
+	BulletPhysicsDirectCollisionsResolution() {}
+	virtual int get_test() const {
+		std::cout << "test" << std::endl;
+		return 14;
+	};
+
+	virtual float get_resolver_penetration() {
+		return solverConstraint.m_rhsPenetration;
+	}
+
+};
 
 class BulletPhysicsDirectBodyState : public PhysicsDirectBodyState {
 	GDCLASS(BulletPhysicsDirectBodyState, PhysicsDirectBodyState);
@@ -157,6 +178,9 @@ private:
 	BulletPhysicsDirectBodyState *direct_access = nullptr;
 	friend class BulletPhysicsDirectBodyState;
 
+	BulletPhysicsDirectCollisionsResolution *direct_access2 = nullptr;
+	friend class BulletPhysicsDirectCollisionsResolution;
+
 	// This is required only for Kinematic movement
 	KinematicUtilities *kinematic_utilities;
 
@@ -174,6 +198,8 @@ private:
 	bool can_sleep;
 	bool omit_forces_integration;
 	bool can_integrate_forces;
+	bool omit_collisions_resolution;
+	bool can_resolve_collisions;
 
 	Vector<CollisionData> collisions;
 	Vector<RigidBodyBullet *> collision_traces_1;
@@ -197,12 +223,15 @@ private:
 	bool previousActiveState; // Last check state
 
 	ForceIntegrationCallback *force_integration_callback;
+	ForceIntegrationCallback *collisions_resolution_callback;
 
 public:
 	RigidBodyBullet();
 	~RigidBodyBullet();
 
 	BulletPhysicsDirectBodyState *get_direct_state() const { return direct_access; }
+	BulletPhysicsDirectCollisionsResolution *get_direct_state_collisions_resolution() const { return direct_access2; }
+
 
 	void init_kinematic_utilities();
 	void destroy_kinematic_utilities();
@@ -214,8 +243,10 @@ public:
 	virtual void reload_body();
 	virtual void set_space(SpaceBullet *p_space);
 
+	
 	virtual void dispatch_callbacks();
 	void set_force_integration_callback(ObjectID p_id, const StringName &p_method, const Variant &p_udata = Variant());
+	void set_collisions_resolution_callback(ObjectID p_id, const StringName &p_method, const Variant &p_udata = Variant());
 	void scratch_space_override_modificator();
 
 	virtual void on_collision_filters_change();
@@ -247,6 +278,9 @@ public:
 
 	void set_omit_forces_integration(bool p_omit);
 	_FORCE_INLINE_ bool get_omit_forces_integration() const { return omit_forces_integration; }
+
+	void set_omit_collisions_resolution(bool p_omit);
+	_FORCE_INLINE_ bool get_omit_collisions_resolution() const { return omit_collisions_resolution; }
 
 	void set_param(PhysicsServer::BodyParameter p_param, real_t);
 	real_t get_param(PhysicsServer::BodyParameter p_param) const;
@@ -297,6 +331,7 @@ public:
 	/// Kinematic
 	void reload_kinematic_shapes();
 
+	void notify_collisions();
 	virtual void notify_transform_changed();
 
 private:

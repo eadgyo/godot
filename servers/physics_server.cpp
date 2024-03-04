@@ -593,6 +593,10 @@ void PhysicsServer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("body_set_omit_force_integration", "body", "enable"), &PhysicsServer::body_set_omit_force_integration);
 	ClassDB::bind_method(D_METHOD("body_is_omitting_force_integration", "body"), &PhysicsServer::body_is_omitting_force_integration);
 
+	ClassDB::bind_method(D_METHOD("body_set_omit_collisions_resolution", "body", "enable"), &PhysicsServer::body_set_omit_collisions_resolution);
+	ClassDB::bind_method(D_METHOD("body_is_omitting_collisions_resolution", "body"), &PhysicsServer::body_is_omitting_collisions_resolution);
+
+	ClassDB::bind_method(D_METHOD("body_set_collisions_resolution_callback", "body", "receiver", "method", "userdata"), &PhysicsServer::body_set_collisions_resolution_callback, DEFVAL(Variant()));
 	ClassDB::bind_method(D_METHOD("body_set_force_integration_callback", "body", "receiver", "method", "userdata"), &PhysicsServer::body_set_force_integration_callback, DEFVAL(Variant()));
 
 	ClassDB::bind_method(D_METHOD("body_set_ray_pickable", "body", "enable"), &PhysicsServer::body_set_ray_pickable);

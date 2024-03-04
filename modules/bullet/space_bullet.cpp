@@ -818,6 +818,8 @@ void SpaceBullet::check_body_collision() {
 					float appliedImpulse = pt.m_appliedImpulse;
 					B_TO_G(pt.m_normalWorldOnB, normalOnB);
 
+					std::cout << "can add collision " << appliedImpulse << std::endl;
+
 					// The pt.m_index only contains the shape index when more than one collision shape is used
 					// and only if the collision shape is not a concave collision shape.
 					// A value of -1 in pt.m_partId indicates the pt.m_index is a shape index.

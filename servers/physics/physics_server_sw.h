@@ -222,10 +222,14 @@ public:
 	virtual void body_set_omit_force_integration(RID p_body, bool p_omit);
 	virtual bool body_is_omitting_force_integration(RID p_body) const;
 
+	virtual void body_set_omit_collisions_resolution(RID p_body, bool p_omit);
+	virtual bool body_is_omitting_collisions_resolution(RID p_body) const;
+
 	virtual void body_set_max_contacts_reported(RID p_body, int p_contacts);
 	virtual int body_get_max_contacts_reported(RID p_body) const;
 
 	virtual void body_set_force_integration_callback(RID p_body, Object *p_receiver, const StringName &p_method, const Variant &p_udata = Variant());
+	virtual void body_set_collisions_resolution_callback(RID p_body, Object *p_receiver, const StringName &p_method, const Variant &p_udata = Variant());
 
 	virtual void body_set_ray_pickable(RID p_body, bool p_enable);
 	virtual bool body_is_ray_pickable(RID p_body) const;

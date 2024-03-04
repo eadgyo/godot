@@ -276,6 +276,8 @@ RigidBodyBullet::RigidBodyBullet() :
 		can_sleep(true),
 		omit_forces_integration(false),
 		can_integrate_forces(false),
+		omit_collisions_resolution(false),
+		can_resolve_collisions(false),
 		maxCollisionsDetection(0),
 		collisionsCount(0),
 		prev_collision_count(0),
@@ -284,7 +286,8 @@ RigidBodyBullet::RigidBodyBullet() :
 		countGravityPointSpaces(0),
 		isScratchedSpaceOverrideModificator(false),
 		previousActiveState(true),
-		force_integration_callback(nullptr) {
+		force_integration_callback(nullptr),
+		collisions_resolution_callback(nullptr) {
 	godotMotionState = bulletnew(GodotMotionState(this));
 
 	// Initial properties
@@ -309,13 +312,20 @@ RigidBodyBullet::RigidBodyBullet() :
 
 	direct_access = memnew(BulletPhysicsDirectBodyState);
 	direct_access->body = this;
+
+	direct_access2 = memnew(BulletPhysicsDirectCollisionsResolution);
+	direct_access2->body = this;
 }
 
 RigidBodyBullet::~RigidBodyBullet() {
 	bulletdelete(godotMotionState);
 	memdelete(direct_access);
+	memdelete(direct_access2);
 	if (force_integration_callback) {
 		memdelete(force_integration_callback);
+	}
+	if (collisions_resolution_callback) {
+		memdelete(collisions_resolution_callback);
 	}
 
 	destroy_kinematic_utilities();
@@ -352,6 +362,7 @@ void RigidBodyBullet::set_space(SpaceBullet *p_space) {
 	// Clear the old space if there is one
 	if (space) {
 		can_integrate_forces = false;
+		can_resolve_collisions = false;
 		isScratchedSpaceOverrideModificator = false;
 		// Remove any constraints
 		space->remove_rigid_body_constraints(this);
@@ -368,23 +379,44 @@ void RigidBodyBullet::set_space(SpaceBullet *p_space) {
 
 void RigidBodyBullet::dispatch_callbacks() {
 	/// The check isFirstTransformChanged is necessary in order to call integrated forces only when the first transform is sent
-	if ((btBody->isKinematicObject() || btBody->isActive() || previousActiveState != btBody->isActive()) && force_integration_callback && can_integrate_forces) {
-		if (omit_forces_integration) {
-			btBody->clearForces();
+	if (btBody->isKinematicObject() || btBody->isActive() || previousActiveState != btBody->isActive()) {
+		
+		if (force_integration_callback && can_integrate_forces) {
+			if (omit_forces_integration) {
+				btBody->clearForces();
+			}
+
+			Variant variantBodyDirect = direct_access;
+
+			Object *obj = ObjectDB::get_instance(force_integration_callback->id);
+			if (!obj) {
+				// Remove integration callback
+				set_force_integration_callback(0, StringName());
+			} else {
+				const Variant *vp[2] = { &variantBodyDirect, &force_integration_callback->udata };
+
+				Variant::CallError responseCallError;
+				int argc = (force_integration_callback->udata.get_type() == Variant::NIL) ? 1 : 2;
+				obj->call(force_integration_callback->method, vp, argc, responseCallError);
+			}
 		}
+		
+		if (collisions_resolution_callback && this->btBody->getCanResolveCollisions()) {
+			this->btBody->setCanResolveCollisions(false);
+			Variant variantBodyDirect = direct_access2;
+			direct_access2->solverConstraint = this->btBody->getCollisionsResolutionConstraint();
 
-		Variant variantBodyDirect = direct_access;
+			Object *obj = ObjectDB::get_instance(collisions_resolution_callback->id);
+			if (!obj) {
+				// Remove integration callback
+				set_collisions_resolution_callback(0, StringName());
+			} else {
+				const Variant *vp[2] = { &variantBodyDirect, &collisions_resolution_callback->udata };
 
-		Object *obj = ObjectDB::get_instance(force_integration_callback->id);
-		if (!obj) {
-			// Remove integration callback
-			set_force_integration_callback(0, StringName());
-		} else {
-			const Variant *vp[2] = { &variantBodyDirect, &force_integration_callback->udata };
-
-			Variant::CallError responseCallError;
-			int argc = (force_integration_callback->udata.get_type() == Variant::NIL) ? 1 : 2;
-			obj->call(force_integration_callback->method, vp, argc, responseCallError);
+				Variant::CallError responseCallError;
+				int argc = (collisions_resolution_callback->udata.get_type() == Variant::NIL) ? 1 : 2;
+				obj->call(collisions_resolution_callback->method, vp, argc, responseCallError);
+			}
 		}
 	}
 
@@ -411,6 +443,20 @@ void RigidBodyBullet::set_force_integration_callback(ObjectID p_id, const String
 		force_integration_callback->id = p_id;
 		force_integration_callback->method = p_method;
 		force_integration_callback->udata = p_udata;
+	}
+}
+
+void RigidBodyBullet::set_collisions_resolution_callback(ObjectID p_id, const StringName &p_method, const Variant &p_udata) {
+	if (collisions_resolution_callback) {
+		memdelete(collisions_resolution_callback);
+		collisions_resolution_callback = nullptr;
+	}
+
+	if (p_id != 0) {
+		collisions_resolution_callback = memnew(ForceIntegrationCallback);
+		collisions_resolution_callback->id = p_id;
+		collisions_resolution_callback->method = p_method;
+		collisions_resolution_callback->udata = p_udata;
 	}
 }
 
@@ -486,6 +532,11 @@ void RigidBodyBullet::set_omit_forces_integration(bool p_omit) {
 	omit_forces_integration = p_omit;
 }
 
+void RigidBodyBullet::set_omit_collisions_resolution(bool p_omit) {
+	omit_collisions_resolution = p_omit;
+	this->btBody->setUseCollisionsResolution(p_omit);
+}
+
 void RigidBodyBullet::set_param(PhysicsServer::BodyParameter p_param, real_t p_value) {
 	switch (p_param) {
 		case PhysicsServer::BODY_PARAM_BOUNCE:
@@ -546,6 +597,7 @@ real_t RigidBodyBullet::get_param(PhysicsServer::BodyParameter p_param) const {
 void RigidBodyBullet::set_mode(PhysicsServer::BodyMode p_mode) {
 	// This is necessary to block force_integration untile next move
 	can_integrate_forces = false;
+	can_resolve_collisions = false;
 	destroy_kinematic_utilities();
 	// The mode change is relevant to its mass
 	switch (p_mode) {
@@ -1028,6 +1080,10 @@ void RigidBodyBullet::reload_kinematic_shapes() {
 void RigidBodyBullet::notify_transform_changed() {
 	RigidCollisionObjectBullet::notify_transform_changed();
 	can_integrate_forces = true;
+}
+
+void RigidBodyBullet::notify_collisions() {
+	can_resolve_collisions = true;
 }
 
 void RigidBodyBullet::_internal_set_mass(real_t p_mass) {

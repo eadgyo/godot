@@ -663,6 +663,20 @@ bool RigidBody::is_using_custom_integrator() {
 	return custom_integrator;
 }
 
+void RigidBody::set_use_custom_collisions_resolution(bool p_enable) {
+	if (custom_collisions_resolution == p_enable) {
+		return;
+	}
+
+	custom_collisions_resolution = p_enable;
+	PhysicsServer::get_singleton()->body_set_omit_collisions_resolution(get_rid(), p_enable);
+}
+
+bool RigidBody::is_using_custom_collisions_resolution() const {
+	return custom_collisions_resolution;
+}
+
+
 void RigidBody::set_sleeping(bool p_sleeping) {
 	sleeping = p_sleeping;
 	PhysicsServer::get_singleton()->body_set_state(get_rid(), PhysicsServer::BODY_STATE_SLEEPING, sleeping);
@@ -843,9 +857,12 @@ void RigidBody::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_contact_monitor", "enabled"), &RigidBody::set_contact_monitor);
 	ClassDB::bind_method(D_METHOD("is_contact_monitor_enabled"), &RigidBody::is_contact_monitor_enabled);
-
+	
 	ClassDB::bind_method(D_METHOD("set_use_continuous_collision_detection", "enable"), &RigidBody::set_use_continuous_collision_detection);
 	ClassDB::bind_method(D_METHOD("is_using_continuous_collision_detection"), &RigidBody::is_using_continuous_collision_detection);
+
+	ClassDB::bind_method(D_METHOD("set_use_custom_collisions_resolution", "enable"), &RigidBody::set_use_custom_collisions_resolution);
+	ClassDB::bind_method(D_METHOD("is_using_custom_collisions_resolution"), &RigidBody::is_using_custom_collisions_resolution);
 
 	ClassDB::bind_method(D_METHOD("set_axis_velocity", "axis_velocity"), &RigidBody::set_axis_velocity);
 
@@ -884,6 +901,7 @@ void RigidBody::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "physics_material_override", PROPERTY_HINT_RESOURCE_TYPE, "PhysicsMaterial"), "set_physics_material_override", "get_physics_material_override");
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "gravity_scale", PROPERTY_HINT_RANGE, "-128,128,0.01"), "set_gravity_scale", "get_gravity_scale");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "custom_integrator"), "set_use_custom_integrator", "is_using_custom_integrator");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "custom_collisions_resolution"), "set_use_custom_collisions_resolution", "is_using_custom_collisions_resolution");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "continuous_cd"), "set_use_continuous_collision_detection", "is_using_continuous_collision_detection");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "contacts_reported", PROPERTY_HINT_RANGE, "0,64,1,or_greater"), "set_max_contacts_reported", "get_max_contacts_reported");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "contact_monitor"), "set_contact_monitor", "is_contact_monitor_enabled");

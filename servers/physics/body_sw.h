@@ -88,6 +88,7 @@ class BodySW : public CollisionObjectSW {
 
 	VSet<RID> exceptions;
 	bool omit_force_integration;
+	bool omit_collisions_resolution;
 	bool active;
 
 	bool first_integration;
@@ -137,6 +138,7 @@ class BodySW : public CollisionObjectSW {
 	};
 
 	ForceIntegrationCallback *fi_callback;
+	ForceIntegrationCallback *cr_callback;
 
 	uint64_t island_step;
 	BodySW *island_next;
@@ -151,6 +153,7 @@ class BodySW : public CollisionObjectSW {
 
 public:
 	void set_force_integration_callback(ObjectID p_id, const StringName &p_method, const Variant &p_udata = Variant());
+	void set_collisions_resolution_callback(ObjectID p_id, const StringName &p_method, const Variant &p_udata = Variant());
 
 	void set_kinematic_margin(real_t p_margin);
 	_FORCE_INLINE_ real_t get_kinematic_margin() { return kinematic_safe_margin; }
@@ -207,6 +210,9 @@ public:
 
 	_FORCE_INLINE_ void set_omit_force_integration(bool p_omit_force_integration) { omit_force_integration = p_omit_force_integration; }
 	_FORCE_INLINE_ bool get_omit_force_integration() const { return omit_force_integration; }
+
+	_FORCE_INLINE_ void set_omit_collisions_resolution(bool p_omit_collisions_resolution) { omit_collisions_resolution = p_omit_collisions_resolution; }
+	_FORCE_INLINE_ bool get_omit_collisions_resolution() const { return omit_collisions_resolution; }
 
 	_FORCE_INLINE_ Basis get_principal_inertia_axes() const { return principal_inertia_axes; }
 	_FORCE_INLINE_ Vector3 get_center_of_mass() const { return center_of_mass; }

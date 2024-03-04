@@ -248,6 +248,12 @@ public:
 
 	virtual void body_set_force_integration_callback(RID p_body, Object *p_receiver, const StringName &p_method, const Variant &p_udata = Variant());
 
+	virtual void body_set_omit_collisions_resolution(RID p_body, bool p_omit);
+	virtual bool body_is_omitting_collisions_resolution(RID p_body) const;
+
+	virtual void body_set_collisions_resolution_callback(RID p_body, Object *p_receiver, const StringName &p_method, const Variant &p_udata = Variant());
+
+
 	virtual void body_set_ray_pickable(RID p_body, bool p_enable);
 	virtual bool body_is_ray_pickable(RID p_body) const;
 

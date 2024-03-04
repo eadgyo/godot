@@ -37,6 +37,7 @@
 #include "servers/physics_server.h"
 #include "skeleton.h"
 
+
 class PhysicsBody : public CollisionObject {
 	GDCLASS(PhysicsBody, CollisionObject);
 
@@ -126,6 +127,7 @@ protected:
 	int max_contacts_reported;
 
 	bool custom_integrator;
+	bool custom_collisions_resolution;
 
 	struct ShapePair {
 		int body_shape;
@@ -216,6 +218,9 @@ public:
 
 	void set_use_custom_integrator(bool p_enable);
 	bool is_using_custom_integrator();
+
+	void set_use_custom_collisions_resolution(bool p_enable);
+	bool is_using_custom_collisions_resolution() const;
 
 	void set_sleeping(bool p_sleeping);
 	bool is_sleeping() const;

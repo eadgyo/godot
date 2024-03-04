@@ -37,6 +37,7 @@
 #include "test_astar.h"
 #include "test_basis.h"
 #include "test_crypto.h"
+#include "test_collisionsResolution.h""
 #include "test_gdscript.h"
 #include "test_gui.h"
 #include "test_math.h"
@@ -60,6 +61,7 @@ const char **tests_get_names() {
 		"physics",
 		"physics_2d",
 		"render",
+		"collres",
 		"oa_hash_map",
 		"gui",
 		"shaderlang",
@@ -104,6 +106,10 @@ MainLoop *test_main(String p_test, const List<String> &p_args) {
 
 	if (p_test == "render") {
 		return TestRender::test();
+	}
+
+	if (p_test == "collres") {
+		return TestCollisionsResolution::test();
 	}
 
 	if (p_test == "oa_hash_map") {

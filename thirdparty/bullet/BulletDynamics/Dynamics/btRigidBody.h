@@ -21,6 +21,8 @@ subject to the following restrictions:
 #include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h"
 #include "BulletCollision/CollisionDispatch/btCollisionObject.h"
 
+#include "BulletDynamics/ConstraintSolver/btSolverConstraint.h"
+
 class btCollisionShape;
 class btMotionState;
 class btTypedConstraint;
@@ -91,6 +93,12 @@ class btRigidBody : public btCollisionObject
 	int m_rigidbodyFlags;
 
 	int m_debugBodyId;
+
+	int m_useCollisionsResolution = false;
+
+	int m_canResolveCollisionsContact = false;
+
+	btSolverConstraint solverConstraint;
 
 protected:
 	ATTRIBUTE_ALIGNED16(btVector3 m_deltaLinearVelocity);
@@ -197,6 +205,31 @@ public:
 		if (colObj->getInternalType() & btCollisionObject::CO_RIGID_BODY)
 			return (btRigidBody*)colObj;
 		return 0;
+	}
+
+	bool getCanResolveCollisions() const {
+		return m_canResolveCollisionsContact;
+	}
+
+	btSolverConstraint getCollisionsResolutionConstraint() {
+		return this->solverConstraint;
+	}
+
+	void setCanResolveCollisions(bool notify) {
+		m_canResolveCollisionsContact = notify;
+	}
+
+	void notify_contact(btSolverConstraint solverConstrain1) {
+		m_canResolveCollisionsContact = true;
+		this->solverConstraint = solverConstrain1;
+	}
+
+	bool getUseCollisionsResolution() const {
+		return m_useCollisionsResolution;
+	}
+
+	void setUseCollisionsResolution(bool useCollisionsResolution) {
+		m_useCollisionsResolution = useCollisionsResolution;
 	}
 
 	/// continuous collision detection needs prediction
@@ -355,7 +388,7 @@ public:
             }
         }
     }
-    
+   
     btVector3 getPushVelocity() const
     {
         return m_pushVelocity;

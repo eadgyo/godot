@@ -711,6 +711,7 @@ void BodySW::call_queries() {
 		Object *obj = ObjectDB::get_instance(fi_callback->id);
 		if (!obj) {
 			set_force_integration_callback(0, StringName());
+			set_collisions_resolution_callback(0, StringName());
 		} else {
 			const Variant *vp[2] = { &v, &fi_callback->udata };
 
@@ -754,6 +755,21 @@ void BodySW::set_force_integration_callback(ObjectID p_id, const StringName &p_m
 	}
 }
 
+void BodySW::set_collisions_resolution_callback(ObjectID p_id, const StringName &p_method, const Variant &p_udata) {
+	if (cr_callback) {
+		memdelete(cr_callback);
+		cr_callback = nullptr;
+	}
+
+	if (p_id != 0) {
+		cr_callback = memnew(ForceIntegrationCallback);
+		cr_callback->id = p_id;
+		cr_callback->method = p_method;
+		cr_callback->udata = p_udata;
+	}
+}
+
+
 void BodySW::set_kinematic_margin(real_t p_margin) {
 	kinematic_safe_margin = p_margin;
 }
@@ -774,6 +790,7 @@ BodySW::BodySW() :
 	bounce = 0;
 	friction = 1;
 	omit_force_integration = false;
+	omit_collisions_resolution = false;
 	//applied_torque=0;
 	island_step = 0;
 	island_next = nullptr;
@@ -802,6 +819,9 @@ BodySW::~BodySW() {
 	memdelete(direct_access);
 	if (fi_callback) {
 		memdelete(fi_callback);
+	}
+	if (cr_callback) {
+		memdelete(cr_callback);
 	}
 }
 
